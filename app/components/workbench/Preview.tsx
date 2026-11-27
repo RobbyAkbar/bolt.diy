@@ -67,6 +67,10 @@ export const Preview = memo(({ selectedElement, setSelectedElement }: PreviewPro
   const activePreview = previews[activePreviewIndex];
   const [displayPath, setDisplayPath] = useState('/');
   const [iframeUrl, setIframeUrl] = useState<string | undefined>();
+  const [isIframeLoading, setIsIframeLoading] = useState(false);
+
+  useEffect(() => setIsIframeLoading(!!iframeUrl), [iframeUrl]);
+
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [isInspectorMode, setIsInspectorMode] = useState(false);
   const [selectedInspectorElement, setSelectedInspectorElement] = useState<ElementInfo | null>(null);
@@ -834,7 +838,7 @@ export const Preview = memo(({ selectedElement, setSelectedElement }: PreviewPro
       )}
       <div className="bg-bolt-elements-background-depth-2 p-2 flex items-center gap-2">
         <div className="flex items-center gap-2">
-          <IconButton icon="i-ph:arrow-clockwise" onClick={reloadPreview} />
+          <IconButton icon="i-ph:arrow-clockwise" title="Reload preview" onClick={reloadPreview} />
           <IconButton
             icon={isPreviewPaused ? 'i-ph:play' : 'i-ph:pause'}
             onClick={() => setIsPreviewPaused((prev) => !prev)}
@@ -842,6 +846,7 @@ export const Preview = memo(({ selectedElement, setSelectedElement }: PreviewPro
           />
           <IconButton
             icon="i-ph:selection"
+            title="Select area for screenshot"
             onClick={() => setIsSelectionMode(!isSelectionMode)}
             className={isSelectionMode ? 'bg-bolt-elements-background-depth-3' : ''}
           />
@@ -1176,9 +1181,19 @@ export const Preview = memo(({ selectedElement, setSelectedElement }: PreviewPro
                   title="preview"
                   className="border-none w-full h-full bg-bolt-elements-background-depth-1"
                   src={iframeUrl}
+                  onLoad={() => setIsIframeLoading(false)}
                   sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
                   allow="geolocation; ch-ua-full-version-list; cross-origin-isolated; screen-wake-lock; publickey-credentials-get; shared-storage-select-url; ch-ua-arch; bluetooth; compute-pressure; ch-prefers-reduced-transparency; deferred-fetch; usb; ch-save-data; publickey-credentials-create; shared-storage; deferred-fetch-minimal; run-ad-auction; ch-ua-form-factors; ch-downlink; otp-credentials; payment; ch-ua; ch-ua-model; ch-ect; autoplay; camera; private-state-token-issuance; accelerometer; ch-ua-platform-version; idle-detection; private-aggregation; interest-cohort; ch-viewport-height; local-fonts; ch-ua-platform; midi; ch-ua-full-version; xr-spatial-tracking; clipboard-read; gamepad; display-capture; keyboard-map; join-ad-interest-group; ch-width; ch-prefers-reduced-motion; browsing-topics; encrypted-media; gyroscope; serial; ch-rtt; ch-ua-mobile; window-management; unload; ch-dpr; ch-prefers-color-scheme; ch-ua-wow64; attribution-reporting; fullscreen; identity-credentials-get; private-state-token-redemption; hid; ch-ua-bitness; storage-access; sync-xhr; ch-device-memory; ch-viewport-width; picture-in-picture; magnetometer; clipboard-write; microphone"
                 />
+              )}
+              {isIframeLoading && !isPreviewPaused && !(isDeviceModeOn && showDeviceFrameInPreview) && (
+                <div
+                  role="status"
+                  aria-label="Loading preview"
+                  className="absolute inset-0 flex items-center justify-center bg-bolt-elements-background-depth-1 pointer-events-none"
+                >
+                  <div className="i-ph:spinner animate-spin text-2xl text-bolt-elements-textTertiary" />
+                </div>
               )}
               {!isPreviewPaused && (
                 <ScreenshotSelector

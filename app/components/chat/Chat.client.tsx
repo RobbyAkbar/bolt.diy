@@ -97,6 +97,11 @@ export function Chat() {
 
   return (
     <>
+      {!ready && (
+        <div role="status" aria-label="Loading chat" className="flex flex-1 items-center justify-center">
+          <div className="i-ph:spinner animate-spin text-2xl text-bolt-elements-textTertiary" />
+        </div>
+      )}
       {ready && (
         <ChatImpl
           description={title}

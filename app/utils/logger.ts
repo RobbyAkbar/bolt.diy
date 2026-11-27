@@ -14,7 +14,9 @@ interface Logger {
   setLevel: (level: DebugLevel) => void;
 }
 
-let currentLevel: DebugLevel = import.meta.env.VITE_LOG_LEVEL || (import.meta.env.DEV ? 'debug' : 'info');
+// production browsers default to warn so the console stays readable; servers keep info for ops logs
+let currentLevel: DebugLevel =
+  import.meta.env.VITE_LOG_LEVEL || (import.meta.env.DEV ? 'debug' : typeof window === 'undefined' ? 'info' : 'warn');
 
 export const logger: Logger = {
   trace: (...messages: any[]) => logWithDebugCapture('trace', undefined, messages),
