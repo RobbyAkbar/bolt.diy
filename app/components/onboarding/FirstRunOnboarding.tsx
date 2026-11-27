@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
+import { Select } from '~/components/ui/Select';
 import { API_KEYS_UPDATED_EVENT, type ApiKeysUpdatedDetail } from '~/lib/api/apiKeys';
 import { setSecureCookie } from '~/lib/api/secure-cookies';
 import { getAll, openDatabase } from '~/lib/persistence/db';
@@ -334,19 +335,17 @@ export function FirstRunOnboarding() {
             <label className="block text-sm font-medium" htmlFor="onboarding-provider">
               AI provider
             </label>
-            <select
+            <Select
               id="onboarding-provider"
               value={providerName}
-              onChange={(event) => setProviderName(event.target.value)}
-              className="w-full rounded-md border border-[#302e39] bg-[#121116] px-3 py-2 text-sm text-[#f4f1fa]"
-            >
-              <option value="">None for now</option>
-              {PROVIDER_LIST.map((provider) => (
-                <option key={provider.name} value={provider.name}>
-                  {provider.name}
-                </option>
-              ))}
-            </select>
+              onValueChange={setProviderName}
+              className="!rounded-md !border-[#302e39] !bg-[#121116] !text-[#f4f1fa]"
+              contentClassName="!border-[#302e39] !bg-[#1b1a22] [&_[role=menuitemradio]]:!text-[#f4f1fa]"
+              options={[
+                { value: '', label: 'None for now' },
+                ...PROVIDER_LIST.map((provider) => ({ value: provider.name, label: provider.name })),
+              ]}
+            />
             <label className="block text-sm font-medium" htmlFor="onboarding-api-key">
               API key
             </label>
@@ -392,22 +391,20 @@ export function FirstRunOnboarding() {
               <label className="mb-1 block text-sm font-medium" htmlFor="onboarding-theme">
                 Color theme
               </label>
-              <select
+              <Select
                 id="onboarding-theme"
                 value={selectedTheme}
-                onChange={(event) => setSelectedTheme(event.target.value as Theme)}
-                className="w-full rounded-md border border-[#302e39] bg-[#121116] px-3 py-2 text-sm text-[#f4f1fa]"
-              >
-                {(['light', 'dark'] as const).map((mode) => (
-                  <optgroup key={mode} label={`${mode[0].toUpperCase()}${mode.slice(1)} themes`}>
-                    {THEMES.filter((theme) => theme.mode === mode).map((theme) => (
-                      <option key={theme.id} value={theme.id}>
-                        {theme.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                onValueChange={setSelectedTheme}
+                className="!rounded-md !border-[#302e39] !bg-[#121116] !text-[#f4f1fa]"
+                contentClassName="!border-[#302e39] !bg-[#1b1a22] [&_[role=menuitemradio]]:!text-[#f4f1fa]"
+                options={(['light', 'dark'] as const).flatMap((mode) =>
+                  THEMES.filter((theme) => theme.mode === mode).map((theme) => ({
+                    value: theme.id as Theme,
+                    label: theme.name,
+                    group: `${mode[0].toUpperCase()}${mode.slice(1)} themes`,
+                  })),
+                )}
+              />
             </div>
 
             <div className="rounded-md bg-[#22212a] p-3">

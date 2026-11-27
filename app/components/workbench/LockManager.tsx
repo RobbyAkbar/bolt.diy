@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Checkbox } from '~/components/ui/Checkbox';
+import { Select } from '~/components/ui/Select';
 import { toast } from '~/components/ui/use-toast';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { classNames } from '~/utils/classNames';
@@ -157,15 +158,17 @@ export function LockManager() {
           />
         </div>
         {/* Filter Select */}
-        <select
-          className="text-xs px-1 py-0.5 h-6 bg-bolt-elements-background-depth-2 text-bolt-elements-textPrimary rounded border border-bolt-elements-borderColor focus:outline-none"
+        <Select
+          aria-label="Filter locked items"
+          className="!w-auto !h-6 !px-2 !py-0.5 !text-xs !rounded"
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
-        >
-          <option value="all">All</option>
-          <option value="files">Files</option>
-          <option value="folders">Folders</option>
-        </select>
+          onValueChange={setFilter}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'files', label: 'Files' },
+            { value: 'folders', label: 'Folders' },
+          ]}
+        />
       </div>
 
       {/* Header Row with Select All */}

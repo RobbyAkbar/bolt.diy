@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import React from 'react';
+import { Select } from '~/components/ui/Select';
 import { classNames } from '~/utils/classNames';
 
 interface TokenTypeOption {
@@ -76,25 +77,13 @@ export function ConnectionForm({
                   <label className="block text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary mb-2">
                     Token Type
                   </label>
-                  <select
-                    value={selectedTokenType}
-                    onChange={(e) => onTokenTypeChange(e.target.value)}
+                  <Select
+                    aria-label="Token type"
+                    value={selectedTokenType ?? tokenTypes[0].value}
+                    onValueChange={onTokenTypeChange}
                     disabled={isConnecting}
-                    className={classNames(
-                      'w-full px-3 py-2 rounded-lg text-sm',
-                      'bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-1',
-                      'border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor',
-                      'text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary',
-                      'focus:outline-none focus:ring-1 focus:ring-bolt-elements-item-contentAccent dark:focus:ring-bolt-elements-item-contentAccent',
-                      'disabled:opacity-50',
-                    )}
-                  >
-                    {tokenTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={tokenTypes.map((type) => ({ value: type.value, label: type.label }))}
+                  />
                   {selectedTokenType && tokenTypes.find((t) => t.value === selectedTokenType)?.description && (
                     <p className="mt-1 text-xs text-bolt-elements-textTertiary">
                       {tokenTypes.find((t) => t.value === selectedTokenType)?.description}
