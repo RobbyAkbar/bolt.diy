@@ -4,6 +4,8 @@ import { toApiErrorResponse, toMissingCredentialError } from '~/lib/.server/api/
 import { readJsonBody } from '~/lib/.server/api/read-body';
 import { REQUEST_LIMITS, enhancerRequestSchema, parseBody } from '~/lib/.server/api/schemas';
 import { streamText } from '~/lib/.server/llm/stream-text';
+import { requireLlmUser } from '~/lib/.server/usage/identity';
+import { trackUsage } from '~/lib/.server/usage/store';
 import { getApiKeysFromCookie, getProviderSettingsFromCookie } from '~/lib/api/cookies';
 import { createMessage } from '~/lib/persistence/messageMigration';
 import { stripIndents } from '~/utils/stripIndent';
@@ -13,6 +15,12 @@ export async function action(args: ActionFunctionArgs) {
 }
 
 async function enhancerAction({ context, request }: ActionFunctionArgs) {
+  const denied = requireLlmUser(request, context);
+
+  if (denied) {
+    return denied;
+  }
+
   /*
    * `provider` used to be destructured from an unvalidated body, so `{ provider: {} }`
    * threw a TypeError reading `.name` and surfaced as a 500. Validated up front now.
@@ -87,6 +95,16 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
          * }
          */
       },
+    });
+
+    void trackUsage({
+      context,
+      request,
+      endpoint: 'enhancer',
+      provider: providerName,
+      model,
+      apiKeys,
+      usage: result.totalUsage,
     });
 
     // Return the text stream directly since it's already text data

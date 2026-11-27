@@ -21,6 +21,8 @@ import { getWebResearchInstructions } from '~/lib/.server/llm/prompt-web-tools';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import { streamText, type StreamingOptions } from '~/lib/.server/llm/stream-text';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
+import { requireLlmUser } from '~/lib/.server/usage/identity';
+import { trackUsage } from '~/lib/.server/usage/store';
 import { getApiKeysFromCookie, getProviderSettingsFromCookie } from '~/lib/api/cookies';
 import { getAgentLoopProgress } from '~/lib/common/agentLoop';
 import { CONTINUE_PROMPT } from '~/lib/common/prompts/prompts';
@@ -42,6 +44,12 @@ export const action = withSecurity(chatAction, {
 });
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
+  const denied = requireLlmUser(request, context);
+
+  if (denied) {
+    return denied;
+  }
+
   /*
    * Validation happens before any provider work, not inside the try block below.
    * `request.json<T>()` only asserts a TypeScript type — at runtime a crafted
@@ -71,6 +79,8 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   } = body;
 
   const messages = asMessages(body.messages);
+  const lastUserMessage = messages.filter((message) => message.role === 'user').slice(-1)[0];
+  const usageTarget = lastUserMessage ? extractPropertiesFromMessage(lastUserMessage) : null;
   const starterBuild = chatMode === 'build' ? getStarterBuildProgress(messages) : getStarterBuildProgress([]);
   const agentLoopEnabled = chatMode === 'build' && (agentMode || starterBuild.status !== 'inactive');
   const agentProgress = getAgentLoopProgress(messages, agentLoopEnabled);
@@ -419,6 +429,23 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               cumulativeUsage.completionTokens += usage.outputTokens || 0;
               cumulativeUsage.promptTokens += usage.inputTokens || 0;
               cumulativeUsage.totalTokens += usage.totalTokens || 0;
+            }
+
+            // The last segment (anything but a length continuation) carries the request's total.
+            if (finishReason !== 'length' && usageTarget) {
+              void trackUsage({
+                context,
+                request,
+                endpoint: 'chat',
+                provider: usageTarget.provider,
+                model: usageTarget.model,
+                apiKeys,
+                usage: {
+                  inputTokens: cumulativeUsage.promptTokens,
+                  outputTokens: cumulativeUsage.completionTokens,
+                  totalTokens: cumulativeUsage.totalTokens,
+                },
+              });
             }
 
             if (finishReason === 'error') {

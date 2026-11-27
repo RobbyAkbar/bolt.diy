@@ -4,11 +4,13 @@
  * be done when the app is reachable solely through that proxy.
  */
 export type UsageContext = {
-  cloudflare?: { env?: Partial<Env> & Record<string, unknown>; ctx?: ExecutionContext };
+  cloudflare?: { env?: Partial<Env>; ctx?: ExecutionContext };
 };
 
 export function readEnv(context: UsageContext, key: string): string | undefined {
-  const value = context.cloudflare?.env?.[key] ?? (typeof process !== 'undefined' ? process.env?.[key] : undefined);
+  const env = context.cloudflare?.env as Record<string, unknown> | undefined;
+  const value = env?.[key] ?? (typeof process !== 'undefined' ? process.env?.[key] : undefined);
+
   return typeof value === 'string' ? value : undefined;
 }
 

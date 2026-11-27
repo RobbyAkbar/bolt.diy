@@ -13,6 +13,8 @@ import { REQUEST_LIMITS, asProviderInfo, llmCallRequestSchema, parseBody } from 
 import { MAX_TOKENS, PROVIDER_COMPLETION_LIMITS, isReasoningModel } from '~/lib/.server/llm/constants';
 import { toLlmCallResponse } from '~/lib/.server/llm/llmcall-response';
 import { streamText } from '~/lib/.server/llm/stream-text';
+import { requireLlmUser } from '~/lib/.server/usage/identity';
+import { trackUsage } from '~/lib/.server/usage/store';
 import { getApiKeysFromCookie, getProviderSettingsFromCookie } from '~/lib/api/cookies';
 import { LLMManager } from '~/lib/modules/llm/manager';
 import type { ModelInfo } from '~/lib/modules/llm/types';
@@ -78,6 +80,12 @@ function validateTokenLimits(modelDetails: ModelInfo, requestedTokens: number): 
 }
 
 async function llmCallAction({ context, request }: ActionFunctionArgs) {
+  const denied = requireLlmUser(request, context);
+
+  if (denied) {
+    return denied;
+  }
+
   /*
    * Bounded read + schema check before any provider call. The previous
    * `request.json<T>()` was a compile-time assertion only: `message` and
@@ -122,6 +130,16 @@ async function llmCallAction({ context, request }: ActionFunctionArgs) {
         providerSettings,
         model,
         provider: providerName,
+      });
+
+      void trackUsage({
+        context,
+        request,
+        endpoint: 'llmcall',
+        provider: providerName,
+        model,
+        apiKeys,
+        usage: result.totalUsage,
       });
 
       return new Response(toSafeTextStream(result.textStream), {
@@ -236,6 +254,16 @@ async function llmCallAction({ context, request }: ActionFunctionArgs) {
       );
 
       const result = await generateText(finalParams);
+
+      void trackUsage({
+        context,
+        request,
+        endpoint: 'llmcall',
+        provider: providerName,
+        model,
+        apiKeys,
+        usage: result.totalUsage,
+      });
       logger.info(`Generated response`);
 
       return new Response(JSON.stringify(toLlmCallResponse(result)), {

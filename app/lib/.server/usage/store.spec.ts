@@ -23,7 +23,7 @@ function row(user: string, keySource: 'server' | 'user', total: number, ts = '20
   });
 }
 
-function ctx(env: Record<string, unknown>, waitUntil?: (p: Promise<unknown>) => void): UsageContext {
+function ctx(env: Partial<Env>, waitUntil?: (p: Promise<unknown>) => void): UsageContext {
   return { cloudflare: { env, ctx: waitUntil ? ({ waitUntil } as unknown as ExecutionContext) : undefined } };
 }
 
