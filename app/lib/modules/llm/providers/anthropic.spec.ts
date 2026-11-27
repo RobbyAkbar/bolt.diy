@@ -16,6 +16,17 @@ describe('Anthropic base URL', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('https://res.services.ai.azure.com/anthropic/v1/models');
   });
 
+  it('falls back to static models when a compatible host has no model list endpoint', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Not Found', { status: 404 })));
+
+    const models = await new AnthropicProvider().getDynamicModels(
+      { Anthropic: 'key' },
+      { baseUrl: 'https://res.services.ai.azure.com/anthropic/v1' },
+    );
+
+    expect(models).toEqual([]);
+  });
+
   it('defaults to api.anthropic.com', async () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ data: [] }));
     vi.stubGlobal('fetch', fetchMock);
