@@ -14,6 +14,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Select } from '~/components/ui/Select';
 import { getPluginToolName } from '~/lib/plugins/adapters';
 import type { MarketplaceSnapshot, MarketplacePlugin } from '~/lib/plugins/marketplace';
 import { pluginCategorySchema, pluginManifestSchema, type PluginManifest } from '~/lib/plugins/schema';
@@ -451,17 +452,13 @@ export default function PluginTab() {
             <label className="sr-only" htmlFor="plugin-category">
               Filter by category
             </label>
-            <select
+            <Select
               id="plugin-category"
-              className={`${inputClass} w-auto min-w-44`}
+              className="!w-auto min-w-44"
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
-            >
-              <option>All categories</option>
-              {CATEGORIES.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+              onValueChange={setCategory}
+              options={['All categories', ...CATEGORIES].map((item) => ({ value: item, label: item }))}
+            />
           </div>
 
           {(operationError || storeError) && <ErrorMessage message={operationError ?? storeError ?? ''} />}
@@ -1028,15 +1025,12 @@ function DeveloperWizard({
               </label>
               <label className="space-y-1 text-sm text-bolt-elements-textSecondary">
                 Category
-                <select
-                  className={inputClass}
+                <Select
+                  aria-label="Category"
                   value={draft.category}
-                  onChange={(event) => setDraft({ ...draft, category: event.target.value as Draft['category'] })}
-                >
-                  {CATEGORIES.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
+                  onValueChange={(next) => setDraft({ ...draft, category: next })}
+                  options={CATEGORIES.map((item) => ({ value: item, label: item }))}
+                />
               </label>
               <label className="space-y-1 text-sm text-bolt-elements-textSecondary md:col-span-2">
                 Description

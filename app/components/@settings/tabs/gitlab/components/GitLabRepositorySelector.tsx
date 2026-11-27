@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RepositoryCard } from '~/components/@settings/shared/RepositoryCard';
 import { BranchSelector } from '~/components/ui/BranchSelector';
 import { Button } from '~/components/ui/Button';
+import { Select } from '~/components/ui/Select';
 import { useGitLabConnection } from '~/lib/hooks';
 import type { GitLabProjectInfo } from '~/types/GitLab';
 import { classNames } from '~/utils/classNames';
@@ -262,30 +263,34 @@ export function GitLabRepositorySelector({ onClone, className }: GitLabRepositor
         {/* Sort */}
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-bolt-elements-textTertiary" />
-          <select
+          <Select
+            aria-label="Sort repositories"
+            className="!w-auto"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="px-3 py-2 rounded-lg bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor text-bolt-elements-textPrimary text-sm focus:outline-none focus:ring-1 focus:ring-bolt-elements-borderColorActive"
-          >
-            <option value="updated">Recently updated</option>
-            <option value="stars">Most starred</option>
-            <option value="name">Name (A-Z)</option>
-            <option value="created">Recently created</option>
-          </select>
+            onValueChange={setSortBy}
+            options={[
+              { value: 'updated', label: 'Recently updated' },
+              { value: 'stars', label: 'Most starred' },
+              { value: 'name', label: 'Name (A-Z)' },
+              { value: 'created', label: 'Recently created' },
+            ]}
+          />
         </div>
 
         {/* Filter */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-bolt-elements-textTertiary" />
-          <select
+          <Select
+            aria-label="Filter repositories"
+            className="!w-auto"
             value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value as FilterOption)}
-            className="px-3 py-2 rounded-lg bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor text-bolt-elements-textPrimary text-sm focus:outline-none focus:ring-1 focus:ring-bolt-elements-borderColorActive"
-          >
-            <option value="all">All repositories</option>
-            <option value="owned">Owned repositories</option>
-            <option value="member">Member repositories</option>
-          </select>
+            onValueChange={setFilterBy}
+            options={[
+              { value: 'all', label: 'All repositories' },
+              { value: 'owned', label: 'Owned repositories' },
+              { value: 'member', label: 'Member repositories' },
+            ]}
+          />
         </div>
       </div>
 

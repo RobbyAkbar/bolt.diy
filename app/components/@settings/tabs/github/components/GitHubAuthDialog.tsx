@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
+import { Select } from '~/components/ui/Select';
 import { useGitHubConnection } from '~/lib/hooks';
 import { classNames } from '~/utils/classNames';
 
@@ -74,22 +75,16 @@ export function GitHubAuthDialog({ isOpen, onClose, onSuccess }: GitHubAuthDialo
               <form onSubmit={handleConnect} className="space-y-4">
                 <div>
                   <label className="block text-sm text-bolt-elements-textSecondary mb-2">Token Type</label>
-                  <select
+                  <Select
+                    aria-label="Token type"
                     value={tokenType}
-                    onChange={(e) => setTokenType(e.target.value as 'classic' | 'fine-grained')}
+                    onValueChange={setTokenType}
                     disabled={isConnecting}
-                    className={classNames(
-                      'w-full px-3 py-2 rounded-lg text-sm',
-                      'bg-bolt-elements-background-depth-1',
-                      'border border-bolt-elements-borderColor',
-                      'text-bolt-elements-textPrimary',
-                      'focus:outline-none focus:ring-1 focus:ring-bolt-elements-item-contentAccent',
-                      'disabled:opacity-50',
-                    )}
-                  >
-                    <option value="classic">Personal Access Token (Classic)</option>
-                    <option value="fine-grained">Fine-grained Token</option>
-                  </select>
+                    options={[
+                      { value: 'classic', label: 'Personal Access Token (Classic)' },
+                      { value: 'fine-grained', label: 'Fine-grained Token' },
+                    ]}
+                  />
                 </div>
 
                 <div>

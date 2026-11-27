@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import type { UserProfile } from '~/components/@settings/core/types';
 import { Card, CardContent } from '~/components/ui/Card';
+import { Select } from '~/components/ui/Select';
 import { Switch } from '~/components/ui/Switch';
 import { getAllChats } from '~/lib/persistence/chats';
 import { openDatabase } from '~/lib/persistence/db';
 import { setTheme, themeStore } from '~/lib/stores/theme';
 import { THEMES } from '~/types/theme';
-import { classNames } from '~/utils/classNames';
 import { isMac } from '~/utils/os';
 
 // Helper to get modifier key symbols/text
@@ -185,29 +185,23 @@ export default function SettingsTab() {
             <div className="i-ph:translate-fill w-4 h-4 text-bolt-elements-textSecondary" />
             <label className="block text-sm text-bolt-elements-textSecondary">Language</label>
           </div>
-          <select
+          <Select
+            aria-label="Language"
             value={settings.language}
-            onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))}
-            className={classNames(
-              'w-full px-3 py-2 rounded-lg text-sm',
-              'bg-bolt-elements-background-depth-2',
-              'border border-bolt-elements-borderColor',
-              'text-bolt-elements-textPrimary',
-              'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
-              'transition-all duration-200',
-            )}
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="it">Italiano</option>
-            <option value="pt">Português</option>
-            <option value="ru">Русский</option>
-            <option value="zh">中文</option>
-            <option value="ja">日本語</option>
-            <option value="ko">한국어</option>
-          </select>
+            onValueChange={(language) => setSettings((prev) => ({ ...prev, language }))}
+            options={[
+              { value: 'en', label: 'English' },
+              { value: 'es', label: 'Español' },
+              { value: 'fr', label: 'Français' },
+              { value: 'de', label: 'Deutsch' },
+              { value: 'it', label: 'Italiano' },
+              { value: 'pt', label: 'Português' },
+              { value: 'ru', label: 'Русский' },
+              { value: 'zh', label: '中文' },
+              { value: 'ja', label: '日本語' },
+              { value: 'ko', label: '한국어' },
+            ]}
+          />
         </div>
 
         <div>
@@ -266,20 +260,12 @@ export default function SettingsTab() {
             <div className="i-ph:globe-fill w-4 h-4 text-bolt-elements-textSecondary" />
             <label className="block text-sm text-bolt-elements-textSecondary">Timezone</label>
           </div>
-          <select
+          <Select
+            aria-label="Timezone"
             value={settings.timezone}
-            onChange={(e) => setSettings((prev) => ({ ...prev, timezone: e.target.value }))}
-            className={classNames(
-              'w-full px-3 py-2 rounded-lg text-sm',
-              'bg-bolt-elements-background-depth-2',
-              'border border-bolt-elements-borderColor',
-              'text-bolt-elements-textPrimary',
-              'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
-              'transition-all duration-200',
-            )}
-          >
-            <option value={currentTimezone}>{currentTimezone}</option>
-          </select>
+            onValueChange={(timezone) => setSettings((prev) => ({ ...prev, timezone }))}
+            options={[{ value: currentTimezone, label: currentTimezone }]}
+          />
         </div>
       </motion.div>
 

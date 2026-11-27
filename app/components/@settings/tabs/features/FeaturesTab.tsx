@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import React, { memo, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { Select } from '~/components/ui/Select';
 import { Switch } from '~/components/ui/Switch';
 import { PromptLibrary } from '~/lib/common/prompt-library';
 import { useSettings } from '~/lib/hooks/useSettings';
@@ -267,27 +268,16 @@ export default function FeaturesTab() {
               Choose a prompt from the library to use as the system prompt
             </p>
           </div>
-          <select
+          <Select
+            aria-label="Prompt template"
+            className="!w-auto min-w-[200px]"
             value={promptId}
-            onChange={(e) => {
-              setPromptId(e.target.value);
+            onValueChange={(id) => {
+              setPromptId(id);
               toast.success('Prompt template updated');
             }}
-            className={classNames(
-              'p-2 rounded-lg text-sm min-w-[200px]',
-              'bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor',
-              'text-bolt-elements-textPrimary',
-              'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
-              'group-hover:border-purple-500/30',
-              'transition-all duration-200',
-            )}
-          >
-            {PromptLibrary.getList().map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.label}
-              </option>
-            ))}
-          </select>
+            options={PromptLibrary.getList().map((x) => ({ value: x.id, label: x.label }))}
+          />
         </div>
       </motion.div>
     </div>

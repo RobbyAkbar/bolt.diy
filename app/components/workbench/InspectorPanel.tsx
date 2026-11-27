@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ElementInfo } from './Inspector';
+import { Select } from '~/components/ui/Select';
 
 const editableStyles = [
   { property: 'color', label: 'Text color', type: 'color' },
@@ -142,18 +143,19 @@ export const InspectorPanel = ({
               >
                 <span>{label}</span>
                 {type === 'select' ? (
-                  <select
+                  <Select
                     value={value}
-                    onChange={(event) => onStyleChange(property, event.target.value)}
-                    className="w-32 rounded-md border border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 px-2 py-1.5 text-xs text-bolt-elements-textPrimary"
+                    onValueChange={(next) => onStyleChange(property, next)}
+                    className="!w-32 !rounded-md !px-2 !py-1.5 !text-xs"
                     aria-label={label}
-                  >
-                    <option value="">Default</option>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                    <option value="justify">Justify</option>
-                  </select>
+                    options={[
+                      { value: '', label: 'Default' },
+                      { value: 'left', label: 'Left' },
+                      { value: 'center', label: 'Center' },
+                      { value: 'right', label: 'Right' },
+                      { value: 'justify', label: 'Justify' },
+                    ]}
+                  />
                 ) : type === 'color' ? (
                   <div className="flex w-32 items-center gap-1.5">
                     <input
