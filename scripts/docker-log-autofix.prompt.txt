@@ -37,6 +37,7 @@ For each fix follow the repo workflow:
 
 ## 4. Promote
 If the smoke test passed: `git switch dev && git pull --ff-only origin dev`, `git merge --no-ff <each fix branch>`, `git push origin dev`.
+Skip promoting a fix whose bug only exists in commits that are on dev-robby but not on dev (in that case branch the fix from the commit that introduced it, not origin/dev); record it as "waiting for <commit> to be promoted".
 
 ## 5. Finish
 - Always end on `dev-robby` with a clean working tree.
