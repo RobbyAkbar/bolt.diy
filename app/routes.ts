@@ -16,6 +16,7 @@ export default [
   },
   { file: 'routes/git.tsx', path: '/git' },
   { file: 'routes/starter.tsx', path: '/starter' },
+  { file: 'routes/admin.usage.tsx', path: '/admin/usage' },
   { file: 'routes/well-known.chrome-devtools.ts', path: '/.well-known/appspecific/com.chrome.devtools.json' },
   { file: 'routes/webcontainer.connect.$id.tsx', path: '/webcontainer/connect/:id' },
   { file: 'routes/webcontainer.preview.$id.tsx', path: '/webcontainer/preview/:id' },

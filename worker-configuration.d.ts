@@ -20,4 +20,8 @@ interface Env {
   XAI_API_KEY: string;
   PERPLEXITY_API_KEY: string;
   AWS_BEDROCK_CONFIG: string;
+  // Per-user usage monitoring (see docs/superpowers/specs/2026-11-27-per-user-api-usage-design.md)
+  USAGE_DB?: D1Database;
+  AUTH_USER_HEADER?: string;
+  ADMIN_USERS?: string;
 }

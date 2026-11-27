@@ -8,5 +8,7 @@
   "observability": {
     "enabled": true
   },
-  "upload_source_maps": true
+  "upload_source_maps": true,
+  // Per-user token usage. Locally (vite preview in Docker) miniflare keeps it under .wrangler/state/v3/d1.
+  "d1_databases": [{ "binding": "USAGE_DB", "database_name": "bolt-usage", "database_id": "local-bolt-usage" }]
 }
