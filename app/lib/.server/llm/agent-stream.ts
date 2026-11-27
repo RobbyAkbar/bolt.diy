@@ -16,7 +16,7 @@ export function withAgentToolCallRecovery(model: LanguageModel, onRetry: () => v
     return model;
   }
 
-  const normalized = wrapLanguageModel({ model, middleware: [] });
+  const normalized = wrapLanguageModel({ model, middleware: {} }); // One middleware forces a plain copy. [] returns the model itself, and spreading it drops class getters like provider.
 
   return {
     ...normalized,
@@ -260,7 +260,7 @@ export function withAgentStreamDeadlines(model: LanguageModel, limits = DEFAULT_
     return model;
   }
 
-  const normalized = wrapLanguageModel({ model, middleware: [] });
+  const normalized = wrapLanguageModel({ model, middleware: {} }); // One middleware forces a plain copy. [] returns the model itself, and spreading it drops class getters like provider.
 
   return {
     ...normalized,
@@ -361,6 +361,12 @@ export function withAgentStreamDeadlines(model: LanguageModel, limits = DEFAULT_
         };
       } catch (error) {
         release();
+
+        // Only our own deadline becomes a stream error (retried via onError); HTTP errors like 429 must reach the SDK's maxRetries.
+        if (!attempt.signal.aborted) {
+          throw error;
+        }
+
         return {
           stream: new ReadableStream({
             start(controller) {

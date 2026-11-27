@@ -1,7 +1,7 @@
 import { streamText as _streamText, type ModelMessage, type UIMessage } from 'ai';
 import { withAgentStreamDeadlines, withAgentToolCallRecovery } from './agent-stream';
 import { MAX_TOKENS, PROVIDER_COMPLETION_LIMITS, isReasoningModel, type FileMap } from './constants';
-import { prepareModelMessages } from './model-messages';
+import { prepareModelMessages, withoutReplayedReasoning } from './model-messages';
 import { withDevelopmentCommentaryWorkstyle } from './prompt-workstyle';
 import { createFilesContext, extractPropertiesFromMessage } from './utils';
 import { toSafeStreamErrorMessage } from '~/lib/.server/api/errors';
@@ -347,12 +347,14 @@ export async function streamText(props: {
   } = filteredOptions as StreamingOptions & Record<string, unknown>;
 
   // Honor explicit routing options. Forcing require_parameters can exclude usable OpenRouter providers.
-  const selectedModel = provider.getModelInstance({
-    model: modelDetails.name,
-    serverEnv,
-    apiKeys,
-    providerSettings,
-  });
+  const selectedModel = withoutReplayedReasoning(
+    provider.getModelInstance({
+      model: modelDetails.name,
+      serverEnv,
+      apiKeys,
+      providerSettings,
+    }),
+  );
   const boundedModel =
     forwardedOptions.streamRetries !== undefined ? withAgentStreamDeadlines(selectedModel) : selectedModel;
   const streamParams = {

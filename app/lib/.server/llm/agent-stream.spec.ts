@@ -1,4 +1,13 @@
-import { isStepCount, jsonSchema, streamText, tool, toUIMessageStream, type ToolSet, type TextStreamPart } from 'ai';
+import {
+  APICallError,
+  isStepCount,
+  jsonSchema,
+  streamText,
+  tool,
+  toUIMessageStream,
+  type ToolSet,
+  type TextStreamPart,
+} from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAgentStreamRecovery, withAgentStreamDeadlines, withAgentToolCallRecovery } from './agent-stream';
@@ -455,6 +464,54 @@ describe('agent provider recovery', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('leaves provider HTTP errors to the SDK retry so a rate limit waits instead of failing the step', async () => {
+    let calls = 0;
+
+    const model = new MockLanguageModelV4({
+      doStream: async () => {
+        calls += 1;
+
+        if (calls === 1) {
+          throw new APICallError({
+            message: 'Rate limit exceeded',
+            url: 'https://provider.test/v1/messages',
+            requestBodyValues: {},
+            statusCode: 429,
+            responseHeaders: { 'retry-after-ms': '0' },
+            isRetryable: true,
+          });
+        }
+
+        return {
+          stream: new ReadableStream({
+            start(controller) {
+              controller.enqueue({ type: 'stream-start', warnings: [] });
+              controller.enqueue({ type: 'text-start', id: 'ok' });
+              controller.enqueue({ type: 'text-delta', id: 'ok', delta: 'After quota reset.' });
+              controller.enqueue({ type: 'text-end', id: 'ok' });
+              finish(controller);
+            },
+          }),
+        };
+      },
+    });
+
+    const recovery = createAgentStreamRecovery(vi.fn());
+
+    const result = await streamText({
+      model: withAgentStreamDeadlines(model),
+      prompt: 'Continue.',
+      maxRetries: 1,
+      streamRetries: 0,
+      onError: recovery.onError,
+    });
+
+    const chunks = await collect(result);
+    expect(calls).toBe(2);
+    expect(chunks).toContainEqual(expect.objectContaining({ type: 'text-delta', delta: 'After quota reset.' }));
+    expect(chunks.some((chunk) => chunk.type === 'error')).toBe(false);
+  });
+
   it('does not replay an accepted tool call when the transport closes badly after finish', async () => {
     const execute = vi.fn(async () => ({ written: true }));
 
@@ -487,5 +544,22 @@ describe('agent provider recovery', () => {
     expect(onRetry).not.toHaveBeenCalled();
     expect(execute).toHaveBeenCalledTimes(1);
     expect(chunks.some((chunk) => chunk.type === 'error')).toBe(false);
+  });
+});
+
+describe('agent model wrappers', () => {
+  // Real provider models (Anthropic, OpenAI) expose provider as a class getter, which object spread does not copy.
+  const getterModel = () =>
+    Object.create(new MockLanguageModelV4(), {
+      provider: { get: () => 'anthropic.messages' },
+    }) as MockLanguageModelV4;
+
+  it.each([
+    ['deadlines', (model: MockLanguageModelV4) => withAgentStreamDeadlines(model)],
+    ['tool-call recovery', (model: MockLanguageModelV4) => withAgentToolCallRecovery(model, () => undefined)],
+  ])('%s keeps getter-defined provider ids', (_name, wrap) => {
+    const wrapped = wrap(getterModel());
+
+    expect(typeof wrapped === 'string' ? wrapped : wrapped.provider).toBe('anthropic.messages');
   });
 });

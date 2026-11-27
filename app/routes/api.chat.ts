@@ -358,6 +358,9 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
            */
           stopWhen: isStepCount(agentLoopEnabled ? Math.min(maxLLMSteps ?? 12, 12) : (maxLLMSteps ?? 1)),
           timeout: recoveringAgent ? { stepMs: 660_000, totalMs: 900_000 } : { chunkMs: 45_000 },
+
+          // Per-minute provider quotas (e.g. Azure TPM) reset every 60s; the default 2 retries give up after ~6-25s.
+          maxRetries: 6,
           ...(recoveringAgent
             ? { streamRetries: 0, onError: recovery.onError, onToolCallRetry: () => notifyRetry('tool-call') }
             : {}),

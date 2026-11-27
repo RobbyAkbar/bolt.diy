@@ -118,6 +118,10 @@ export default class OpenAIProvider extends BaseProvider {
       },
     });
 
+    if (!response.ok) {
+      throw new Error(`${this.name}: model list request failed with HTTP ${response.status}`);
+    }
+
     const res = (await response.json()) as any;
     const staticModelIds = this.staticModels.map((m) => m.name);
 

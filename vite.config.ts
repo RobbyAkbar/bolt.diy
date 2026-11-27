@@ -42,6 +42,12 @@ export default defineConfig((config) => {
         overlay: true,
       },
     },
+    preview: {
+      // Hosts behind a reverse proxy, e.g. ALLOWED_HOSTS=bolt.example.com,.example.org
+      allowedHosts: process.env.ALLOWED_HOSTS?.split(',')
+        .map((h) => h.trim())
+        .filter(Boolean),
+    },
     resolve: {
       tsconfigPaths: true,
     },

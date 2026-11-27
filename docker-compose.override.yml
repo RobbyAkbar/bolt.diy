@@ -1,0 +1,9 @@
+services:
+  app-prod:
+    networks:
+      - default
+      - microo-network
+
+networks:
+  microo-network:
+    external: true

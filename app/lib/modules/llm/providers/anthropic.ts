@@ -4,15 +4,41 @@ import { BaseProvider } from '~/lib/modules/llm/base-provider';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import type { IProviderSetting } from '~/types/model';
 
+// Override with ANTHROPIC_API_BASE_URL for Anthropic-compatible hosts, e.g. Azure Foundry's https://<resource>.services.ai.azure.com/anthropic/v1
+const DEFAULT_BASE_URL = 'https://api.anthropic.com/v1';
+
 export default class AnthropicProvider extends BaseProvider {
   name = 'Anthropic';
   getApiKeyLink = 'https://console.anthropic.com/settings/keys';
 
   config = {
+    baseUrlKey: 'ANTHROPIC_API_BASE_URL',
     apiTokenKey: 'ANTHROPIC_API_KEY',
+    baseUrl: DEFAULT_BASE_URL,
   };
 
   staticModels: ModelInfo[] = [
+    {
+      name: 'claude-opus-5-5',
+      label: 'Claude Opus 5.5',
+      provider: 'Anthropic',
+      maxTokenAllowed: 1000000,
+      maxCompletionTokens: 128000,
+    },
+    {
+      name: 'claude-sonnet-5-5',
+      label: 'Claude Sonnet 5.5',
+      provider: 'Anthropic',
+      maxTokenAllowed: 1000000,
+      maxCompletionTokens: 128000,
+    },
+    {
+      name: 'claude-haiku-5-5',
+      label: 'Claude Haiku 5.5',
+      provider: 'Anthropic',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 64000,
+    },
     {
       name: 'claude-fable-5',
       label: 'Claude Fable 5',
@@ -69,11 +95,11 @@ export default class AnthropicProvider extends BaseProvider {
     settings?: IProviderSetting,
     serverEnv?: Record<string, string>,
   ): Promise<ModelInfo[]> {
-    const { apiKey } = this.getProviderBaseUrlAndKey({
+    const { baseUrl, apiKey } = this.getProviderBaseUrlAndKey({
       apiKeys,
       providerSettings: settings,
       serverEnv: serverEnv as any,
-      defaultBaseUrlKey: '',
+      defaultBaseUrlKey: 'ANTHROPIC_API_BASE_URL',
       defaultApiTokenKey: 'ANTHROPIC_API_KEY',
     });
 
@@ -81,12 +107,16 @@ export default class AnthropicProvider extends BaseProvider {
       throw `Missing Api Key configuration for ${this.name} provider`;
     }
 
-    const response = await fetch(`https://api.anthropic.com/v1/models`, {
+    const response = await fetch(`${baseUrl}/models`, {
       headers: {
         'x-api-key': `${apiKey}`,
         'anthropic-version': '2023-06-01',
       },
     });
+
+    if (!response.ok) {
+      throw new Error(`${this.name}: model list request failed with HTTP ${response.status}`);
+    }
 
     const res = (await response.json()) as any;
     const staticModelIds = this.staticModels.map((m) => m.name);
@@ -155,16 +185,19 @@ export default class AnthropicProvider extends BaseProvider {
   }) => LanguageModel = (options) => {
     const { apiKeys, providerSettings, serverEnv, model } = options;
 
-    const { apiKey } = this.getProviderBaseUrlAndKey({
+    const { baseUrl, apiKey } = this.getProviderBaseUrlAndKey({
       apiKeys,
-      providerSettings,
+      providerSettings: providerSettings?.[this.name],
       serverEnv: serverEnv as any,
-      defaultBaseUrlKey: '',
+      defaultBaseUrlKey: 'ANTHROPIC_API_BASE_URL',
       defaultApiTokenKey: 'ANTHROPIC_API_KEY',
     });
     const anthropic = createAnthropic({
       apiKey,
-      headers: { 'anthropic-beta': 'output-128k-2025-02-19' },
+      baseURL: baseUrl,
+
+      // ponytail: the beta header is only sent to Anthropic itself; compatible hosts like Azure may reject unknown betas.
+      ...(baseUrl === DEFAULT_BASE_URL ? { headers: { 'anthropic-beta': 'output-128k-2025-02-19' } } : {}),
     });
 
     return anthropic(model);

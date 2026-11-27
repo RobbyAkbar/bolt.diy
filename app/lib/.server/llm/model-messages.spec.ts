@@ -1,6 +1,6 @@
 import type { UIMessage } from 'ai';
 import { describe, expect, it } from 'vitest';
-import { prepareModelMessages } from './model-messages';
+import { dropReplayedReasoning, prepareModelMessages } from './model-messages';
 
 describe('prepareModelMessages', () => {
   it('preserves consecutive completed tool calls when the recent context has no text messages', async () => {
@@ -66,5 +66,55 @@ describe('prepareModelMessages', () => {
 
     expect(result.map((message) => message.role)).toEqual(['user', 'user']);
     expect(JSON.stringify(result)).not.toContain('unfinished');
+  });
+
+  it('drops replayed reasoning so signed thinking blocks are not sent with a different system prompt', async () => {
+    const messages: UIMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'build an app' }] },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          { type: 'reasoning', text: 'thinking', providerMetadata: { anthropic: { signature: 'sig' } } },
+          { type: 'text', text: 'done' },
+        ],
+      },
+      { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'next' }] },
+    ];
+
+    const result = await prepareModelMessages(messages);
+
+    expect(JSON.stringify(result)).not.toContain('"reasoning"');
+    expect(result[1].content).toEqual([expect.objectContaining({ type: 'text', text: 'done' })]);
+  });
+});
+
+describe('dropReplayedReasoning', () => {
+  it('removes reasoning from every assistant message of each step prompt, keeping tool calls', async () => {
+    const params = {
+      prompt: [
+        { role: 'system', content: 'step 2 instructions' },
+        { role: 'user', content: [{ type: 'text', text: 'build an app' }] },
+        {
+          role: 'assistant',
+          content: [
+            { type: 'reasoning', text: '', providerOptions: { anthropic: { signature: 'sig' } } },
+            { type: 'tool-call', toolCallId: 'c1', toolName: 'agent_plan', input: {} },
+          ],
+        },
+        {
+          role: 'tool',
+          content: [
+            { type: 'tool-result', toolCallId: 'c1', toolName: 'agent_plan', output: { type: 'text', value: 'ok' } },
+          ],
+        },
+      ],
+    };
+
+    const result = await dropReplayedReasoning.transformParams!({ params, type: 'stream', model: {} } as any);
+
+    expect(JSON.stringify(result.prompt)).not.toContain('"reasoning"');
+    expect(result.prompt[2].content).toEqual([expect.objectContaining({ type: 'tool-call', toolCallId: 'c1' })]);
+    expect(result.prompt[0]).toEqual(params.prompt[0]);
   });
 });
