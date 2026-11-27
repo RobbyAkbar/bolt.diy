@@ -6,10 +6,15 @@ services:
       dockerfile: Dockerfile
       target: bolt-ai-production
     ports:
-      - '5173:5173'
+      # Loopback only: the public entry is Caddy, which forwards the authenticated
+      # user in X-Auth-User. A public port would let anyone forge that header.
+      - '127.0.0.1:5173:5173'
     env_file: 
       - '.env'
       - '.env.local'
+    volumes:
+      # Per-user token usage (D1, persisted by miniflare).
+      - bolt-usage-d1:/app/.wrangler/state/v3/d1
     environment:
       - NODE_ENV=production
       - COMPOSE_PROFILES=production
@@ -96,3 +101,6 @@ services:
     command: pnpm run dockerstart
     profiles:
       - prebuilt
+
+volumes:
+  bolt-usage-d1:
