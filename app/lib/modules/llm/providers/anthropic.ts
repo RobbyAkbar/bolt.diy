@@ -114,6 +114,11 @@ export default class AnthropicProvider extends BaseProvider {
       },
     });
 
+    // Compatible hosts such as Azure Foundry have no /models endpoint; the static list is the model list there.
+    if (response.status === 404 && baseUrl !== DEFAULT_BASE_URL) {
+      return [];
+    }
+
     if (!response.ok) {
       throw new Error(`${this.name}: model list request failed with HTTP ${response.status}`);
     }
