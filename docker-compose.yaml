@@ -37,7 +37,12 @@ services:
       - RUNNING_IN_DOCKER=true
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    command: pnpm run dockerstart
+    # The worker (workerd) does not see container env vars; .dev.vars is how the
+    # preview passes values in. Only the usage-monitoring vars are forwarded, so
+    # server API keys stay out of the worker exactly as before.
+    command: >-
+      sh -c 'printf "AUTH_USER_HEADER=%s\nADMIN_USERS=%s\n" "$${AUTH_USER_HEADER:-}" "$${ADMIN_USERS:-}" > .dev.vars
+      && exec pnpm run dockerstart'
     profiles:
       - production
 
