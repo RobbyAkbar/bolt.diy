@@ -73,6 +73,7 @@ function CurrentDateTime() {
 export const Menu = () => {
   const { duplicateCurrentChat, exportChat } = useChatHistory({ loadHistory: false });
   const menuRef = useRef<HTMLDivElement>(null);
+  const sidebarTriggerRef = useRef<HTMLButtonElement>(null);
   const [list, setList] = useState<ChatHistoryItem[]>([]);
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
@@ -346,6 +347,9 @@ export const Menu = () => {
   const handleSettingsClose = () => {
     setIsSettingsOpen(false);
     setSettingsInitialTab(undefined);
+
+    // the gear that opened settings is hidden with the sidebar, so hand focus to the visible trigger
+    requestAnimationFrame(() => sidebarTriggerRef.current?.focus());
   };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {
@@ -568,6 +572,7 @@ export const Menu = () => {
       {/* Persistent sidebar trigger — always visible when sidebar is closed */}
       {!open && !isSettingsOpen && (
         <button
+          ref={sidebarTriggerRef}
           onClick={() => setOpen(true)}
           className={classNames(
             'fixed left-0 top-[72px] z-sidebar',

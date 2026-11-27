@@ -180,6 +180,7 @@ export const AssistantMessage = memo(
                   {onRewind && (
                     <WithTooltip tooltip="Revert to this message">
                       <button
+                        aria-label="Revert to this message"
                         onClick={() => onRewind(messageId)}
                         key="i-ph:arrow-u-up-left"
                         className="i-ph:arrow-u-up-left text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
@@ -189,6 +190,7 @@ export const AssistantMessage = memo(
                   {onFork && (
                     <WithTooltip tooltip="Fork chat from this message">
                       <button
+                        aria-label="Fork chat from this message"
                         onClick={() => onFork(messageId)}
                         key="i-ph:git-fork"
                         className="i-ph:git-fork text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"

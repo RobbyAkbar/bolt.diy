@@ -278,7 +278,7 @@ export const ControlPanel = ({ open, onClose, initialTab }: ControlPanelProps) =
                     onClick={handleClose}
                     className="mx-4 mt-4 flex appearance-none items-center gap-2 border-0 border-b border-solid border-bolt-elements-borderColor bg-transparent px-2 pb-5 pt-2 text-left text-sm font-semibold text-bolt-elements-textPrimary hover:text-bolt-elements-item-contentAccent"
                   >
-                    <span className="i-ph:arrow-left w-4 h-4" /> Back to project
+                    <span className="i-ph:arrow-left w-4 h-4" /> Back
                   </button>
                   <nav className="min-h-0 flex-1 overflow-y-auto modern-scrollbar px-3 py-4">
                     {navigationTabs.map((group) => (
