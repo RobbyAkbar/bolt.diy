@@ -39,6 +39,7 @@ const DOM_TESTS = [
   'app/components/chat/Artifact.spec.tsx',
   'app/components/chat/ImportZipButton.spec.tsx',
   'app/components/workbench/WorkbenchReopenButton.spec.tsx',
+  'app/components/header/Header.spec.tsx',
   'app/lib/hooks/useMessageParser.spec.ts',
   'app/lib/persistence/useChatHistory.spec.tsx',
 
@@ -46,6 +47,7 @@ const DOM_TESTS = [
   'app/lib/api/cookies.spec.ts',
   'app/lib/persistence/chatCache.spec.ts',
   'app/lib/services/importExportService.spec.ts',
+  'app/lib/stores/previews.spec.ts',
 
   /*
    * tests/ — every suite here is UI-facing.

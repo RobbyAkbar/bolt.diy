@@ -298,7 +298,8 @@ export const Menu = () => {
         return;
       }
 
-      if (event.pageX < enterThreshold) {
+      // the header toggle sits inside the hover zone; let its click decide instead
+      if (event.pageX < enterThreshold && !(event.target as Element | null)?.closest?.('[data-sidebar-toggle]')) {
         setOpen(true);
       }
 
@@ -321,10 +322,14 @@ export const Menu = () => {
       setOpen(false);
     };
 
+    const handleToggleSidebar = () => setOpen((value) => !value);
+
     document.addEventListener('open-github-settings', handleOpenGitHubSettings);
+    document.addEventListener('toggle-sidebar', handleToggleSidebar);
 
     return () => {
       document.removeEventListener('open-github-settings', handleOpenGitHubSettings);
+      document.removeEventListener('toggle-sidebar', handleToggleSidebar);
     };
   }, []);
 
