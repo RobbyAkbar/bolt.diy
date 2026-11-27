@@ -22,7 +22,7 @@ import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import { streamText, type StreamingOptions } from '~/lib/.server/llm/stream-text';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
 import { requireLlmUser } from '~/lib/.server/usage/identity';
-import { trackUsage } from '~/lib/.server/usage/store';
+import { isFinalChatSegment, trackUsage } from '~/lib/.server/usage/store';
 import { getApiKeysFromCookie, getProviderSettingsFromCookie } from '~/lib/api/cookies';
 import { getAgentLoopProgress } from '~/lib/common/agentLoop';
 import { CONTINUE_PROMPT } from '~/lib/common/prompts/prompts';
@@ -434,8 +434,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               cumulativeUsage.totalTokens += usage.totalTokens || 0;
             }
 
-            // The last segment (anything but a length continuation) carries the request's total.
-            if (finishReason !== 'length' && usageTarget) {
+            if (usageTarget && isFinalChatSegment(finishReason, responseSegments, MAX_RESPONSE_SEGMENTS)) {
               void trackUsage({
                 context,
                 request,

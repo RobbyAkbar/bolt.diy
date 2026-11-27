@@ -113,6 +113,15 @@ export function trackUsage(args: {
   return work;
 }
 
+/*
+ * A chat request is recorded once, on its last segment: any stop other than a
+ * length continuation, or a length stop once no continuation is left (the route
+ * then throws, and the tokens would otherwise never be recorded).
+ */
+export function isFinalChatSegment(finishReason: string | undefined, segmentsUsed: number, maxSegments: number) {
+  return finishReason !== 'length' || segmentsUsed >= maxSegments;
+}
+
 function rangeBounds({ from, to }: UsageRange): [string, string] {
   const end = new Date(`${to}T00:00:00.000Z`);
   end.setUTCDate(end.getUTCDate() + 1);

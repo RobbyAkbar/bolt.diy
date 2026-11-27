@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UsageContext } from './identity';
-import { getUsageSummary, getUserBreakdown, recordUsage, trackUsage } from './store';
+import { getUsageSummary, getUserBreakdown, isFinalChatSegment, recordUsage, trackUsage } from './store';
 import { createTestD1 } from './test-d1';
 
 const NOV = { from: '2026-11-01', to: '2026-11-30' };
@@ -151,5 +151,15 @@ describe('usage store', () => {
 
     expect(waitUntil).toHaveBeenCalledWith(promise);
     await promise;
+  });
+});
+
+describe('isFinalChatSegment', () => {
+  it('a length stop is final only once the continuation cap is reached', () => {
+    expect(isFinalChatSegment('stop', 0, 2)).toBe(true);
+    expect(isFinalChatSegment('error', 1, 2)).toBe(true);
+    expect(isFinalChatSegment('length', 0, 2)).toBe(false);
+    expect(isFinalChatSegment('length', 1, 2)).toBe(false);
+    expect(isFinalChatSegment('length', 2, 2)).toBe(true);
   });
 });
